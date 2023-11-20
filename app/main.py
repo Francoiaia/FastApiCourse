@@ -46,42 +46,52 @@ def find_index_post(id_post):
 
 @app.get("/posts")
 def get_post():
-    return {"data": my_posts}
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    return {"data": posts}
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):
-    post_dict = post.model_dump()
-    post_dict['id'] = randrange(0, 1000000)
-    my_posts.append(post_dict)
-    return {"data": post_dict}
+    cursor.execute("""INSERT INTO posts (title, content, published)VALUES(%s,%s,%s) RETURNING *""",
+                   (post.title, post.content, post.published))
+
+    new_post = cursor.fetchone()
+    conn.commit()
+    # post_dict = post.model_dump()
+    # post_dict['id'] = randrange(0, 1000000)
+    # my_posts.append(post_dict)
+
+    return {"data": new_post}
 
 
 @app.get("/posts/{id_post}")
 def get_post(id_post: int):
-    if post := find_post(id_post):
-        return post
+    cursor.execute("""SELECT * FROM posts where id = %s""", (str(id_post)))
+    if posts := cursor.fetchone():
+        return posts
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID NOT FOUND")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
 @app.delete("/posts/{id_post}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id_post: int):
-    index = find_index_post(id_post)
-
-    if index is None:
+    cursor.execute("""DELETE FROM posts where id = %s RETURNING *""", (str(id_post)))
+    post = cursor.fetchone()
+    conn.commit()
+    if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID NOT FOUND")
-    my_posts.pop(index)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/posts/{id_post}")
 def update_post(id_post: int, post: Post):
-    index = find_index_post(id_post)
-    if index is None:
+    cursor.execute("""UPDATE posts  set title =%s, content=%s,published =%s where id = %s returning *""",
+                   (post.title, post.content, post.published, str(id_post)))
+    post = cursor.fetchone()
+    conn.commit()
+    if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID NOT FOUND")
 
-    post_dict = post.model_dump()
-    post_dict['id'] = id_post
-    my_posts[index] = post_dict
-    return {"data": post_dict}
+    return {"data": post}
