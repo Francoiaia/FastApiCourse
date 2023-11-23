@@ -17,6 +17,7 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id: int
     created_at: datetime
+    user_id_fkey: int
 
     class Config:
         from_attributes = True
