@@ -52,6 +52,11 @@ class Post(PostBase):
         from_attributes = True
 
 
+class PostOut(BaseModel):
+    Posts: Post
+    votes: int
+
+
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1)
