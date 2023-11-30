@@ -24,8 +24,13 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{id_users}", response_model=schemas.UserResponse)
-def get_post(id_users: int, db: Session = Depends(get_db)):
+def get_user(id_users: int, db: Session = Depends(get_db)):
     if user := db.query(models.User).filter(models.User.id == id_users).first():
         return user
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID NOT FOUND")
+
+
+@router.get("/", response_model=list[schemas.UserResponse])
+def get_all_users(db: Session = Depends(get_db)):
+    return db.query(models.User).all()
