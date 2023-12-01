@@ -41,7 +41,8 @@ def create_post(post: schemas.PostCreate,
 
 @router.get("/{id_post}", response_model=schemas.PostOut)
 def get_post(id_post: int,
-             db: Session = Depends(get_db)):
+             db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    # sourcery skip: use-named-expression
     post = ((db.query(models.Posts, func.count(models.Vote.post_id)
                       .label("votes")).join(models.Vote, models.Vote.post_id == models.Posts.id,
                                             isouter=True).group_by(models.Posts.id))

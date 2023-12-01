@@ -1,7 +1,9 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+
     DATABASE_HOSTNAME: str
     DATABASE_PORT: str
     DATABASE_PASSWORD: str
@@ -11,8 +13,8 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
-    class Config:
-        env_file = ".env"
-
+    # class Config:
+    #     env_file = ".env"
+    #
 
 settings = Settings()
